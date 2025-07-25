@@ -2,11 +2,29 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
 
 const Index = () => {
   const [selectedModel, setSelectedModel] = useState('iPhone 15 Pro Max');
   const [cartItems, setCartItems] = useState(0);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [cart, setCart] = useState<any[]>([]);
+  const [deliveryMethod, setDeliveryMethod] = useState('courier');
+  const [paymentMethod, setPaymentMethod] = useState('card');
+  const [customerData, setCustomerData] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    address: '',
+    city: '',
+    postalCode: ''
+  });
 
   const iphones = [
     {
@@ -48,7 +66,54 @@ const Index = () => {
   ];
 
   const addToCart = (phone: any) => {
+    setCart(prev => {
+      const existing = prev.find(item => item.id === phone.id);
+      if (existing) {
+        return prev.map(item => 
+          item.id === phone.id 
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      }
+      return [...prev, { ...phone, quantity: 1, selectedColor: phone.colors[0], selectedStorage: phone.storage[0] }];
+    });
     setCartItems(prev => prev + 1);
+  };
+
+  const removeFromCart = (phoneId: number) => {
+    setCart(prev => {
+      const item = prev.find(item => item.id === phoneId);
+      if (item && item.quantity > 1) {
+        setCartItems(prev => prev - 1);
+        return prev.map(item => 
+          item.id === phoneId 
+            ? { ...item, quantity: item.quantity - 1 }
+            : item
+        );
+      }
+      setCartItems(prev => prev - (item?.quantity || 0));
+      return prev.filter(item => item.id !== phoneId);
+    });
+  };
+
+  const getTotalPrice = () => {
+    return cart.reduce((total, item) => {
+      const price = parseInt(item.price.replace(/[^0-9]/g, ''));
+      return total + (price * item.quantity);
+    }, 0);
+  };
+
+  const getDeliveryPrice = () => {
+    switch (deliveryMethod) {
+      case 'courier': return 990;
+      case 'pickup': return 0;
+      case 'express': return 1990;
+      default: return 990;
+    }
+  };
+
+  const handleCustomerDataChange = (field: string, value: string) => {
+    setCustomerData(prev => ({ ...prev, [field]: value }));
   };
 
   return (
@@ -69,7 +134,12 @@ const Index = () => {
               </nav>
             </div>
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm" className="relative">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="relative"
+                onClick={() => setIsCartOpen(true)}
+              >
                 <Icon name="ShoppingCart" size={20} />
                 {cartItems > 0 && (
                   <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center bg-blue-600 text-white text-xs">
@@ -274,6 +344,283 @@ const Index = () => {
           </div>
         </div>
       </footer>
+
+      {/* Cart Dialog */}
+      <Dialog open={isCartOpen} onOpenChange={setIsCartOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-semibold">Корзина</DialogTitle>
+          </DialogHeader>
+
+          {cart.length === 0 ? (
+            <div className="text-center py-12">
+              <Icon name="ShoppingCart" size={48} className="mx-auto text-gray-400 mb-4" />
+              <p className="text-gray-600 text-lg">Корзина пуста</p>
+              <Button 
+                onClick={() => setIsCartOpen(false)} 
+                className="mt-4 bg-blue-600 hover:bg-blue-700"
+              >
+                Продолжить покупки
+              </Button>
+            </div>
+          ) : (
+            <Tabs defaultValue="cart" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="cart">Товары</TabsTrigger>
+                <TabsTrigger value="delivery">Доставка</TabsTrigger>
+                <TabsTrigger value="payment">Оплата</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="cart" className="space-y-4">
+                <div className="space-y-4">
+                  {cart.map((item) => (
+                    <Card key={item.id} className="p-4">
+                      <div className="flex items-center space-x-4">
+                        <img 
+                          src={item.image} 
+                          alt={item.name}
+                          className="w-20 h-20 object-contain"
+                        />
+                        <div className="flex-1">
+                          <h3 className="font-semibold">{item.name}</h3>
+                          <p className="text-sm text-gray-600">
+                            {item.selectedColor} • {item.selectedStorage}
+                          </p>
+                          <p className="text-lg font-semibold">{item.price}</p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => removeFromCart(item.id)}
+                          >
+                            <Icon name="Minus" size={16} />
+                          </Button>
+                          <span className="px-3 py-1 bg-gray-100 rounded">
+                            {item.quantity}
+                          </span>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => addToCart(item)}
+                          >
+                            <Icon name="Plus" size={16} />
+                          </Button>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+
+                <Separator />
+                
+                <div className="space-y-2">
+                  <div className="flex justify-between text-lg">
+                    <span>Товары:</span>
+                    <span>{getTotalPrice().toLocaleString()} ₽</span>
+                  </div>
+                  <div className="flex justify-between text-lg">
+                    <span>Доставка:</span>
+                    <span>{getDeliveryPrice() === 0 ? 'Бесплатно' : `${getDeliveryPrice().toLocaleString()} ₽`}</span>
+                  </div>
+                  <div className="flex justify-between text-xl font-semibold border-t pt-2">
+                    <span>Итого:</span>
+                    <span>{(getTotalPrice() + getDeliveryPrice()).toLocaleString()} ₽</span>
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="delivery">
+                <div className="space-y-6">
+                  <div>
+                    <Label className="text-base font-semibold mb-4 block">Способ доставки</Label>
+                    <RadioGroup value={deliveryMethod} onValueChange={setDeliveryMethod}>
+                      <div className="flex items-center space-x-2 p-3 border rounded-lg">
+                        <RadioGroupItem value="courier" id="courier" />
+                        <Label htmlFor="courier" className="flex-1 cursor-pointer">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <p className="font-medium">Курьерская доставка</p>
+                              <p className="text-sm text-gray-600">1-3 рабочих дня</p>
+                            </div>
+                            <span className="font-semibold">990 ₽</span>
+                          </div>
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2 p-3 border rounded-lg">
+                        <RadioGroupItem value="pickup" id="pickup" />
+                        <Label htmlFor="pickup" className="flex-1 cursor-pointer">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <p className="font-medium">Самовывоз</p>
+                              <p className="text-sm text-gray-600">Забрать в магазине</p>
+                            </div>
+                            <span className="font-semibold text-green-600">Бесплатно</span>
+                          </div>
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2 p-3 border rounded-lg">
+                        <RadioGroupItem value="express" id="express" />
+                        <Label htmlFor="express" className="flex-1 cursor-pointer">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <p className="font-medium">Экспресс доставка</p>
+                              <p className="text-sm text-gray-600">В течение дня</p>
+                            </div>
+                            <span className="font-semibold">1 990 ₽</span>
+                          </div>
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+
+                  <div className="space-y-4">
+                    <Label className="text-base font-semibold">Адрес доставки</Label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="name">Имя и фамилия</Label>
+                        <Input 
+                          id="name"
+                          value={customerData.name}
+                          onChange={(e) => handleCustomerDataChange('name', e.target.value)}
+                          placeholder="Иван Иванов"
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="phone">Телефон</Label>
+                        <Input 
+                          id="phone"
+                          value={customerData.phone}
+                          onChange={(e) => handleCustomerDataChange('phone', e.target.value)}
+                          placeholder="+7 (999) 123-45-67"
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="city">Город</Label>
+                        <Input 
+                          id="city"
+                          value={customerData.city}
+                          onChange={(e) => handleCustomerDataChange('city', e.target.value)}
+                          placeholder="Москва"
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="postalCode">Индекс</Label>
+                        <Input 
+                          id="postalCode"
+                          value={customerData.postalCode}
+                          onChange={(e) => handleCustomerDataChange('postalCode', e.target.value)}
+                          placeholder="123456"
+                          className="mt-1"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <Label htmlFor="address">Адрес</Label>
+                        <Input 
+                          id="address"
+                          value={customerData.address}
+                          onChange={(e) => handleCustomerDataChange('address', e.target.value)}
+                          placeholder="ул. Тверская, д. 1, кв. 1"
+                          className="mt-1"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <Label htmlFor="email">Email</Label>
+                        <Input 
+                          id="email"
+                          type="email"
+                          value={customerData.email}
+                          onChange={(e) => handleCustomerDataChange('email', e.target.value)}
+                          placeholder="example@mail.ru"
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="payment">
+                <div className="space-y-6">
+                  <div>
+                    <Label className="text-base font-semibold mb-4 block">Способ оплаты</Label>
+                    <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
+                      <div className="flex items-center space-x-2 p-3 border rounded-lg">
+                        <RadioGroupItem value="card" id="card" />
+                        <Label htmlFor="card" className="flex-1 cursor-pointer">
+                          <div className="flex items-center space-x-3">
+                            <Icon name="CreditCard" size={20} />
+                            <div>
+                              <p className="font-medium">Банковская карта</p>
+                              <p className="text-sm text-gray-600">Visa, MasterCard, МИР</p>
+                            </div>
+                          </div>
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2 p-3 border rounded-lg">
+                        <RadioGroupItem value="cash" id="cash" />
+                        <Label htmlFor="cash" className="flex-1 cursor-pointer">
+                          <div className="flex items-center space-x-3">
+                            <Icon name="Banknote" size={20} />
+                            <div>
+                              <p className="font-medium">Наличными</p>
+                              <p className="text-sm text-gray-600">При получении</p>
+                            </div>
+                          </div>
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2 p-3 border rounded-lg">
+                        <RadioGroupItem value="sbp" id="sbp" />
+                        <Label htmlFor="sbp" className="flex-1 cursor-pointer">
+                          <div className="flex items-center space-x-3">
+                            <Icon name="Smartphone" size={20} />
+                            <div>
+                              <p className="font-medium">СБП</p>
+                              <p className="text-sm text-gray-600">Система быстрых платежей</p>
+                            </div>
+                          </div>
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+
+                  <Separator />
+
+                  <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                    <div className="flex justify-between">
+                      <span>Товары ({cart.length}):</span>
+                      <span>{getTotalPrice().toLocaleString()} ₽</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Доставка:</span>
+                      <span>{getDeliveryPrice() === 0 ? 'Бесплатно' : `${getDeliveryPrice().toLocaleString()} ₽`}</span>
+                    </div>
+                    <div className="flex justify-between text-xl font-semibold border-t pt-2">
+                      <span>К оплате:</span>
+                      <span>{(getTotalPrice() + getDeliveryPrice()).toLocaleString()} ₽</span>
+                    </div>
+                  </div>
+
+                  <Button 
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg"
+                    size="lg"
+                  >
+                    <Icon name="ShoppingBag" size={20} className="mr-2" />
+                    Оформить заказ
+                  </Button>
+
+                  <p className="text-sm text-gray-600 text-center">
+                    Нажимая «Оформить заказ», вы соглашаетесь с условиями использования
+                  </p>
+                </div>
+              </TabsContent>
+            </Tabs>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
