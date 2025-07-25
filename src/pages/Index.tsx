@@ -62,6 +62,91 @@ const Index = () => {
       features: ['A16 Bionic', 'Камера 48 МП', 'USB-C', 'Dynamic Island'],
       isNew: false,
       discount: '-5%'
+    },
+    {
+      id: 4,
+      name: 'iPhone 14 Pro Max',
+      price: '119 990 ₽',
+      originalPrice: '129 990 ₽',
+      image: '/img/276f4e8b-c3e3-476b-9d72-b12d1f8d9283.jpg',
+      colors: ['Deep Purple', 'Gold', 'Silver', 'Space Black'],
+      storage: ['128GB', '256GB', '512GB', '1TB'],
+      features: ['A16 Bionic', 'Pro камеры 48 МП', 'Always-On дисплей', 'Dynamic Island'],
+      isNew: false,
+      discount: '-8%'
+    },
+    {
+      id: 5,
+      name: 'iPhone 14',
+      price: '74 990 ₽',
+      originalPrice: '84 990 ₽',
+      image: '/img/a178a47a-44b3-4326-a79b-0b2c48753c15.jpg',
+      colors: ['Blue', 'Purple', 'Midnight', 'Starlight', 'Red'],
+      storage: ['128GB', '256GB', '512GB'],
+      features: ['A15 Bionic', 'Двойная камера', 'Ceramic Shield', 'Emergency SOS'],
+      isNew: false,
+      discount: '-12%'
+    },
+    {
+      id: 6,
+      name: 'iPhone 13 Pro',
+      price: '99 990 ₽',
+      originalPrice: '109 990 ₽',
+      image: '/img/cdda7922-807a-4483-a036-593ea5bab6e9.jpg',
+      colors: ['Sierra Blue', 'Graphite', 'Gold', 'Silver'],
+      storage: ['128GB', '256GB', '512GB', '1TB'],
+      features: ['A15 Bionic', 'Pro камеры', 'ProMotion 120 Гц', 'Macro фото'],
+      isNew: false,
+      discount: '-9%'
+    },
+    {
+      id: 7,
+      name: 'iPhone 13',
+      price: '64 990 ₽',
+      originalPrice: '74 990 ₽',
+      image: '/img/9f7277a9-71af-49fb-8d03-6307b7cdb71f.jpg',
+      colors: ['Pink', 'Blue', 'Midnight', 'Starlight', 'Red'],
+      storage: ['128GB', '256GB', '512GB'],
+      features: ['A15 Bionic', 'Dual камера', 'Cinematic режим', 'Face ID'],
+      isNew: false,
+      discount: '-13%'
+    },
+    {
+      id: 8,
+      name: 'iPhone 12 Pro',
+      price: '84 990 ₽',
+      originalPrice: '94 990 ₽',
+      image: '/img/39a6ead5-0748-41a5-93f3-1866d1a5d4f2.jpg',
+      colors: ['Graphite', 'Silver', 'Gold', 'Pacific Blue'],
+      storage: ['128GB', '256GB', '512GB'],
+      features: ['A14 Bionic', 'Pro камеры', 'LiDAR сканер', 'MagSafe'],
+      isNew: false,
+      discount: '-10%'
+    },
+    {
+      id: 9,
+      name: 'iPhone 12',
+      price: '54 990 ₽',
+      originalPrice: '64 990 ₽',
+      image: '/img/0d30777b-31d3-43c4-96bb-fb944e915376.jpg',
+      colors: ['Purple', 'Blue', 'Green', 'Black', 'White', 'Red'],
+      storage: ['64GB', '128GB', '256GB'],
+      features: ['A14 Bionic', 'Dual камера', '5G', 'Night режим'],
+      isNew: false,
+      discount: '-15%'
+    },
+    {
+      id: 10,
+      name: 'iPhone SE',
+      price: '34 990 ₽',
+      originalPrice: '49 990 ₽',
+      image: '/img/73122f90-477a-4a87-a2c8-25fc27936650.jpg',
+      colors: ['Midnight', 'Starlight', 'Red'],
+      storage: ['64GB', '128GB', '256GB'],
+      features: ['A15 Bionic', 'Touch ID', 'Компактный', 'Водостойкость'],
+      isNew: false,
+      discount: '-30%',
+      isSpecialOffer: true
     }
   ];
 
@@ -167,7 +252,7 @@ const Index = () => {
           
           {/* 3D Product Showcase */}
           <div className="relative mb-16">
-            <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
               {iphones.map((phone, index) => (
                 <Card 
                   key={phone.id}
@@ -184,8 +269,13 @@ const Index = () => {
                         </Badge>
                       )}
                       {phone.discount && (
-                        <Badge variant="outline" className="absolute top-0 left-0 border-red-500 text-red-500">
+                        <Badge variant="outline" className={`absolute top-0 left-0 ${phone.isSpecialOffer ? 'bg-red-500 text-white border-red-500' : 'border-red-500 text-red-500'}`}>
                           {phone.discount}
+                        </Badge>
+                      )}
+                      {phone.isSpecialOffer && (
+                        <Badge className="absolute top-8 left-0 bg-orange-500 text-white animate-pulse">
+                          АКЦИЯ!
                         </Badge>
                       )}
                       <img 
