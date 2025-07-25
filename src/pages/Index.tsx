@@ -14,7 +14,7 @@ const Index = () => {
       name: 'iPhone 15 Pro Max',
       price: '134 990 ₽',
       originalPrice: '149 990 ₽',
-      image: '/img/41eecf7a-dd0d-4d17-b243-70852f190916.jpg',
+      image: '/img/9f809598-1da3-478a-b4f8-e3f164bd2324.jpg',
       colors: ['Space Black', 'White Titanium', 'Blue Titanium', 'Natural Titanium'],
       storage: ['256GB', '512GB', '1TB'],
       features: ['A17 Pro чип', 'Камера 48 МП', 'Action Button', 'USB-C'],
